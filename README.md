@@ -31,9 +31,6 @@ LLM 中枢 (生成与重写)：DeepSeek-V4，使用DeepSeek-Chat API，承担逻
 
 
 📂 目录结构 (Project Structure)
-code
-Text
-Medical-RAG/
 ├── core/                       # 核心业务逻辑模块
 │   ├── document_ops.py         # 文档加载、清洗、上下文感知与坐标切分
 │   ├── embedding_ops.py        # Embedding 模型接口
@@ -44,7 +41,7 @@ Medical-RAG/
 ├── data/                       # 原始疾病及医疗 txt 数据集文件夹
 ├── requirements.txt            # 项目依赖包清单
 ├── build_index.py              # 离线全量构建脚本 (带防限流与重试机制)
-└── web_app.py                  # Gradio 6.0 多模态Web交互工作台
+└── web_app.py                  # Gradio 6.0 多模态企业级 Web 交互工作台
 
 
 🛠️ 操作步骤与使用说明
