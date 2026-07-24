@@ -1,0 +1,8 @@
+# 依赖清单
+gradio==4.*
+openai
+chromadb
+rank_bm25
+jieba
+requests
+python-dotenv
