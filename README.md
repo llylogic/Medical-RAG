@@ -62,8 +62,8 @@ Medical-RAG/
 `SILICONFLOW_API_KEY="您的硅基流动密钥"
 DEEPSEEK_API_KEY="您的DeepSeek密钥"`
 3. **构建离线知识库**
-运行离线脚本，系统将读取 data/ 目录下的文献，进行切分、调用 Embedding 模型向量化，并在本地生成 ChromaDB 向量库与 BM25 序列化索引：
-`python build_index.py`
+  : `python build_index.py`
+运行离线脚本，系统将读取 data/ 目录下的文献，进行切分、调用 Embedding 模型向量化，并在本地生成 ChromaDB 向量库与 BM25 序列化索引。
 4. **启动 Web 辅助诊疗工作台**
 ：`python web_app.py`
 启动成功后，在浏览器中访问控制台输出的本地地址（默认：`http://0.0.0.0:7860`）即可体验包含参数动态调优、知识溯源面板的完整前端工作台。
