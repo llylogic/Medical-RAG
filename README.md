@@ -31,6 +31,7 @@ LLM 中枢 (生成与重写)：DeepSeek-V4，使用DeepSeek-Chat API，承担逻
 
 
 📂 目录结构 (Project Structure)
+```text
 ├── core/                       # 核心业务逻辑模块
 │   ├── document_ops.py         # 文档加载、清洗、上下文感知与坐标切分
 │   ├── embedding_ops.py        # Embedding 模型接口
