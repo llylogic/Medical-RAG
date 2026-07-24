@@ -51,3 +51,26 @@ Medical-RAG/
 ├── requirements.txt            # 项目依赖包清单
 ├── build_index.py              # 离线全量构建脚本 (带防限流与重试机制)
 └── web_app.py                  # Gradio 6.0 多模态企业级 Web 交互工作台
+
+🛠️ 操作步骤与使用说明 (Quick Start)
+1. 环境准备
+确保您的 Python 版本为 3.10+，克隆项目后安装依赖：
+code
+Bash
+pip install -r requirements.txt
+2. 配置 API 密钥
+在项目根目录下新建 .env 文件，并填入您的 API Key：
+code
+Env
+SILICONFLOW_API_KEY="sk-您的硅基流动密钥"
+DEEPSEEK_API_KEY="sk-您的DeepSeek密钥"
+3. 构建离线知识库
+运行离线脚本，系统将读取 data/ 目录下的文献，进行切分、调用 Embedding 模型向量化，并在本地生成 ChromaDB 向量库与 BM25 序列化索引。
+code
+Bash
+python build_index.py
+4. 启动 Web 辅助诊疗工作台
+code
+Bash
+python web_app.py
+启动成功后，在浏览器中访问控制台输出的本地地址（默认：http://0.0.0.0:7860）即可体验包含参数动态调优、知识溯源面板的完整前端工作台。
