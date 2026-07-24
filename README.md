@@ -50,7 +50,7 @@ Medical-RAG/
 ├── data/                       # 原始疾病及医疗 txt 数据集文件夹
 ├── requirements.txt            # 项目依赖包清单
 ├── build_index.py              # 离线全量构建脚本 (带防限流与重试机制)
-└── web_app.py                  # Gradio 6.0 多模态企业级 Web 交互工作台
+└── web_app.py                  # Gradio 6.0  Web 交互工作台
 ```
 
 ## 🛠️ 操作步骤与使用说明 (Quick Start)
