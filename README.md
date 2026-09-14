@@ -4,6 +4,7 @@
 
 - **业务场景**：在严肃的医疗问诊与临床指导中，容错率为零。直接依赖通用大模型极易产生致命的“医疗幻觉”（如凭空编造处方药剂量）；而传统的检索系统在处理动辄数万字的《临床诊疗指南》时，常因粗暴的文本切断导致“疾病与症状”张冠李戴，且极易在患者的多轮连环追问中迷失意图。本项目旨在打造一个**“高可信的医疗知识引擎”**，通过重构底层的文本处理与检索链路，实现从**“海量非结构化文献洗解 -> 实体与坐标无损切分 -> 意图重写与混合召回 -> 严谨循证医学生成”**的知识流转闭环，确保大模型输出的每一句诊疗建议都 100% 可追溯至权威原文，彻底打通 AI 落地严肃医疗场景的信任壁垒。。
 - **核心能力**：涵盖高可用离线知识库构建、实体感知嵌套分块、Dense+Sparse 多路混合召回与 RRF 融合、交叉编码器置信度截断、绝对坐标长文本重组（Small-to-Big）、以及基于 Few-Shot 的大模型智能路由与查询重写。
+- **接口与公网接入**：使用 FastAPI 将 RAG 封装为 HTTP 服务，通过 Cloudflare Tunnel 为本地接口入口提供公网 HTTPS 地址，使其他电脑上的客户程序能够通过公网地址和 API Key 发起问答，获取答案及参考资料。
 
 ## 🤖 模型基座选型 (Model Stack)
 - **Embedding 模型 (稠密向量)**：`BAAI/bge-m3`，支持多语言与长文本的高维语义映射。
@@ -25,6 +26,9 @@
 
 4. **意图控制层提出基于全局记忆与 Few-Shot 的Query Rewrite 引擎**
    在检索前置位解耦出独立的 LLM 路由节点。为解决多轮对话架构中“长线失忆”与“话题混淆”的经典悖论，**主动摒弃了传统的滑动窗口物理截断，采用“全量历史视野+ Few-Shot 学习”范式**。通过向 LLM 注入正反对抗示例（标准指代消解 vs 强烈话题切换强制剥离），利用大模型的自注意力机制精准锚定真实意图，在保留无损长程记忆的同时，彻底压制了多轮跳跃提问时极易引发的“上下文粘连（Context Bleeding）”现象。
+
+5. **接口服务层实现 RAG 问答封装与公网接入**
+   使用 FastAPI 封装 RAG 问答流程，由 `api.py` 负责鉴权、参数校验和响应返回，`rag_api_service.py` 调用已有检索与生成模块。提供 Key 验证、健康检查和问答接口，以及 Swagger 交互式文档；通过 Cloudflare Tunnel 建立公网 HTTPS 入口，配套 Python 客户端支持通过公网地址与 API Key 发起多轮问答、查看参考资料。完成从 RAG 业务封装、接口鉴权到公网调用的联调，使客户程序无需部署知识库或获取模型供应商 Key 即可接入服务。
 
 ## 🧗‍♂️ 核心架构难点与解决方案 (Challenges & Solutions)
 
@@ -48,6 +52,14 @@ Medical-RAG/
 │   ├── reranker.py             # Reranker 精排与 Threshold 置信度截断
 │   └── llm_generator.py        # LLM 主生成器与 Few-Shot Query Rewrite 引擎
 ├── data/                       # 原始疾病及医疗 txt 数据集文件夹
+├── client/                     # 独立 HTTP 客户端，与服务端同仓库管理
+│   ├── main.py                 # 客户端交互与对话管理
+│   ├── rag_client.py           # 接口调用与响应处理
+│   └── 使用说明.md             # 客户端使用说明
+├── api.py                      # FastAPI 路由、鉴权和参数校验
+├── rag_api_service.py          # 复用 RAG 核心模块的服务层
+├── requirements-api.txt        # API 新增依赖
+├── .env.api                    # API 配置
 ├── requirements.txt            # 项目依赖包清单
 ├── build_index.py              # 离线全量构建脚本 (带防限流与重试机制)
 └── web_app.py                  # Gradio 6.0  Web 交互工作台
@@ -67,3 +79,41 @@ DEEPSEEK_API_KEY="您的DeepSeek密钥"`
 4. **启动 Web 辅助诊疗工作台**
 ：`python web_app.py`
 启动成功后，在浏览器中访问控制台输出的本地地址（默认：`http://0.0.0.0:7860`）即可体验包含参数动态调优、知识溯源面板的完整前端工作台。
+
+5. **启动 FastAPI 问答接口**
+完成知识库构建后，在项目根目录安装 API 新增依赖：
+
+```bash
+python -m pip install -r requirements-api.txt
+```
+
+将 `.env.api.example` 复制为 `.env.api`，按模板配置服务方发放的 `APP_API_KEY`、模型供应商 Key 和已有索引路径，再启动：
+
+```bash
+python api.py
+```
+
+默认服务地址为 `http://127.0.0.1:8000`。可通过 `/docs` 查看和测试接口，`/health` 检查服务响应，`/auth/verify` 验证 Key，`/chat` 执行问答并返回答案与参考资料。调用 API 无需同时启动 Gradio Web 页面。
+
+6. **建立公网 HTTPS 入口**
+安装 [cloudflared](https://developers.cloudflare.com/tunnel/downloads/)，然后执行：
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:8000
+```
+
+可通过公网地址下的 `/health` 检查连接，再通过 `/docs` 或客户端完成一次问答验证。保持后端服务、所需的端口转发及 cloudflared 运行。Quick Tunnel 提供临时演示入口，重新启动后地址可能变化。[官方说明](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/)
+
+此时client目录下的代码放到任何一台电脑上都可以通过HTTPS地址和API KEY连接到我们的系统了。
+
+7. **运行客户程序**
+在项目根目录执行：
+
+```bash
+python client/main.py
+```
+
+按提示输入上一步生成的公网 HTTPS 基础地址和服务方发放的 `APP_API_KEY`，验证通过后即可问答。客户端支持对话历史管理，以及通过 `/refs` 查看参考资料；仅依赖 Python 标准库，也可将 `client/` 单独复制到其他电脑运行。客户无需安装 cloudflared 或部署 RAG 知识库，只需能够访问该公网地址。
+
+服务地址不要包含 `/docs` 或 `/chat`。远程调用时填写客户网络可达的地址；`127.0.0.1` 表示运行客户端的那台电脑。
+
