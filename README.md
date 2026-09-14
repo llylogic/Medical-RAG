@@ -59,7 +59,7 @@ Medical-RAG/
 ├── api.py                      # FastAPI 路由、鉴权和参数校验
 ├── rag_api_service.py          # 复用 RAG 核心模块的服务层
 ├── requirements-api.txt        # API 新增依赖
-├── .env.api                    # API 配置
+├── .env.api.example            # API 配置模板，不含真实 Key
 ├── requirements.txt            # 项目依赖包清单
 ├── build_index.py              # 离线全量构建脚本 (带防限流与重试机制)
 └── web_app.py                  # Gradio 6.0  Web 交互工作台
